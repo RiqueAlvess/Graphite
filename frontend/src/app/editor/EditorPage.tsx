@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useEditorStore } from '@/store/editorStore'
 import { useVegaPreview } from '@/hooks/useVegaPreview'
 import { Button } from '@/components/ui/button'
-import { Save, Copy, ArrowLeft, Download, RefreshCw } from 'lucide-react'
+import { Save, Copy, ArrowLeft, Download, RefreshCw, Code, Palette } from 'lucide-react'
 import StylePanel from '@/components/editor/StylePanel'
+import VegaJsonEditor from '@/components/editor/VegaJsonEditor'
+import type { VegaLiteSpec } from '@/types'
 
 export default function EditorPage() {
   const { visualId } = useParams<{ visualId: string }>()
@@ -19,7 +21,10 @@ export default function EditorPage() {
     loadVisual,
     saveVisual,
     exportToJSON,
+    updateSpec,
   } = useEditorStore()
+
+  const [editorMode, setEditorMode] = useState<'visual' | 'json'>('visual')
 
   const {
     error: renderError,
@@ -37,6 +42,11 @@ export default function EditorPage() {
 
   const [copied, setCopied] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
+
+  // Handler para mudanças no JSON editor
+  const handleSpecChange = useCallback((newSpec: VegaLiteSpec) => {
+    updateSpec(newSpec)
+  }, [updateSpec])
 
   useEffect(() => {
     if (visualId) {
@@ -156,9 +166,50 @@ export default function EditorPage() {
 
       {/* Main content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Style Panel - Sidebar */}
-        <div className="w-80 bg-white border-r border-gray-200 overflow-y-auto">
-          <StylePanel />
+        {/* Left Panel - Style or JSON Editor */}
+        <div className="w-96 bg-white border-r border-gray-200 flex flex-col">
+          {/* Mode Switcher */}
+          <div className="flex border-b border-gray-200">
+            <button
+              onClick={() => setEditorMode('visual')}
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${
+                editorMode === 'visual'
+                  ? 'bg-white text-blue-600 border-b-2 border-blue-600'
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <Palette size={16} />
+              Visual
+            </button>
+            <button
+              onClick={() => setEditorMode('json')}
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${
+                editorMode === 'json'
+                  ? 'bg-white text-blue-600 border-b-2 border-blue-600'
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <Code size={16} />
+              JSON
+            </button>
+          </div>
+
+          {/* Panel Content */}
+          <div className="flex-1 overflow-hidden">
+            {editorMode === 'visual' ? (
+              <div className="h-full overflow-y-auto">
+                <StylePanel />
+              </div>
+            ) : (
+              <VegaJsonEditor
+                spec={vegaSpec}
+                onChange={handleSpecChange}
+                theme="dark"
+                debounceMs={400}
+                className="h-full"
+              />
+            )}
+          </div>
         </div>
 
         {/* Canvas - Preview */}
@@ -167,15 +218,22 @@ export default function EditorPage() {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">Preview</h3>
-                {isRendering && (
-                  <span className="text-sm text-gray-500">Renderizando...</span>
-                )}
+                <div className="flex items-center gap-2">
+                  {isRendering && (
+                    <span className="text-sm text-gray-500">Renderizando...</span>
+                  )}
+                  {!isValidSpec && vegaSpec && (
+                    <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded">
+                      Spec inválido
+                    </span>
+                  )}
+                </div>
               </div>
 
               {renderError && (
                 <div className="bg-red-50 text-red-600 p-4 rounded-md mb-4">
                   <p className="font-medium">Erro ao renderizar:</p>
-                  <p className="text-sm mt-1">{renderError.message}</p>
+                  <p className="text-sm mt-1 font-mono">{renderError.message}</p>
                 </div>
               )}
 
@@ -195,18 +253,6 @@ export default function EditorPage() {
                 className="w-full min-h-[400px] flex items-center justify-center"
               />
             </div>
-
-            {/* Debug info */}
-            {process.env.NODE_ENV === 'development' && vegaSpec && (
-              <details className="mt-4 bg-gray-100 rounded-lg p-4">
-                <summary className="cursor-pointer font-medium text-gray-700">
-                  Debug: Vega-Lite Spec
-                </summary>
-                <pre className="mt-2 text-xs overflow-auto max-h-96 bg-gray-800 text-green-400 p-4 rounded">
-                  {JSON.stringify(vegaSpec, null, 2)}
-                </pre>
-              </details>
-            )}
           </div>
         </div>
       </div>
