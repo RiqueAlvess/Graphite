@@ -1,8 +1,8 @@
 {
-  "name": "vega-visual-builder",
+  "name": "graphite",
   "version": "1.0.0",
   "private": true,
-  "description": "Plataforma visual para criação de gráficos Vega/Vega-Lite compatíveis com Deneb (Power BI)",
+  "description": "Graphite - Plataforma visual para criação de gráficos Vega/Vega-Lite compatíveis com Deneb (Power BI)",
   "scripts": {
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "dev:frontend": "cd frontend && npm run dev",

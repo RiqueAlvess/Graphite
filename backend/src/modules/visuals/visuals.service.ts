@@ -1,5 +1,4 @@
 import prisma from '../../lib/prisma.js'
-import type { Prisma } from '@prisma/client'
 
 export class VisualsService {
   async create(userId: string, templateId: string) {
@@ -18,8 +17,8 @@ export class VisualsService {
         name: `Novo ${template.name}`,
         userId,
         templateId,
-        styleConfig: template.defaultStyleConfig,
-        spec: template.spec,
+        styleConfig: template.defaultStyleConfig as any,
+        spec: template.spec as any,
         status: 'DRAFT',
       },
       include: {

@@ -1,6 +1,6 @@
-# Contribuindo para o Vega Visual Builder
+# Contribuindo para o Graphite
 
-Obrigado por considerar contribuir com o Vega Visual Builder! 🎉
+Obrigado por considerar contribuir com o Graphite! 🎉
 
 ## Como Contribuir
 

@@ -16,7 +16,7 @@ interface GalleryState {
   deleteVisual: (visualId: string) => Promise<void>
 }
 
-export const useGalleryStore = create<GalleryState>((set, get) => ({
+export const useGalleryStore = create<GalleryState>((set, _get) => ({
   templates: [],
   userVisuals: [],
   isLoadingTemplates: false,
