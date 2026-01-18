@@ -1,6 +1,33 @@
 import type { Template, StyleConfig, VegaLiteSpec } from '@/types'
 
 /**
+ * Cache for styleConfigToVegaSpec transformations
+ */
+interface SpecCache {
+  key: string
+  spec: VegaLiteSpec
+}
+
+let specCache: SpecCache | null = null
+
+/**
+ * Generate cache key from inputs
+ */
+function generateCacheKey(
+  template: Template | any,
+  styleConfig: StyleConfig,
+  userData: any[],
+  currentSpec?: VegaLiteSpec
+): string {
+  return JSON.stringify({
+    templateId: template?.id,
+    styleConfig,
+    dataLength: userData?.length || 0,
+    specMark: currentSpec?.mark,
+  })
+}
+
+/**
  * Tipos de mark suportados pelo Vega-Lite
  */
 type MarkType = 'bar' | 'line' | 'area' | 'point' | 'arc' | 'rect' | 'rule' | 'text' | 'tick' | 'trail' | 'circle' | 'square' | 'geoshape'
@@ -58,6 +85,12 @@ export function styleConfigToVegaSpec(
   userData: any[],
   currentSpec?: VegaLiteSpec
 ): VegaLiteSpec {
+  // Check cache first
+  const cacheKey = generateCacheKey(template, styleConfig, userData, currentSpec)
+  if (specCache && specCache.key === cacheKey) {
+    return JSON.parse(JSON.stringify(specCache.spec)) // Return deep clone to prevent mutations
+  }
+
   // Clone do spec base - prioriza o spec atual do visual, depois o do template
   const baseSpec = currentSpec || template?.spec || {}
   const spec: VegaLiteSpec = JSON.parse(JSON.stringify(baseSpec))
@@ -236,6 +269,9 @@ export function styleConfigToVegaSpec(
       spec.mark = { type: 'bar', tooltip: true }
     }
   }
+
+  // Cache the result
+  specCache = { key: cacheKey, spec }
 
   return spec
 }

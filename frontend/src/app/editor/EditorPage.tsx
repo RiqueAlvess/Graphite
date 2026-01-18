@@ -205,7 +205,7 @@ export default function EditorPage() {
                 spec={vegaSpec}
                 onChange={handleSpecChange}
                 theme="dark"
-                debounceMs={400}
+                debounceMs={100}
                 className="h-full"
               />
             )}

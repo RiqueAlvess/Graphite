@@ -1,9 +1,59 @@
+import { memo, useCallback } from 'react'
 import { useEditorStore } from '@/store/editorStore'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
-export default function StylePanel() {
+function StylePanel() {
   const { styleConfig, updateStyle } = useEditorStore()
+
+  // Memoize callbacks to prevent re-renders
+  const handleBackgroundChange = useCallback((value: string) => {
+    updateStyle('background', value)
+  }, [updateStyle])
+
+  const handlePrimaryColorChange = useCallback((value: string) => {
+    updateStyle('primaryColor', value)
+  }, [updateStyle])
+
+  const handleColorSchemeChange = useCallback((value: string) => {
+    updateStyle('colorScheme', value)
+  }, [updateStyle])
+
+  const handleXAxisTitleChange = useCallback((value: string) => {
+    updateStyle('xAxisTitle', value)
+  }, [updateStyle])
+
+  const handleYAxisTitleChange = useCallback((value: string) => {
+    updateStyle('yAxisTitle', value)
+  }, [updateStyle])
+
+  const handleShowGridChange = useCallback((value: boolean) => {
+    updateStyle('showGrid', value)
+  }, [updateStyle])
+
+  const handleShowBordersChange = useCallback((value: boolean) => {
+    updateStyle('showBorders', value)
+  }, [updateStyle])
+
+  const handleBorderColorChange = useCallback((value: string) => {
+    updateStyle('borderColor', value)
+  }, [updateStyle])
+
+  const handleBorderWidthChange = useCallback((value: number) => {
+    updateStyle('borderWidth', value)
+  }, [updateStyle])
+
+  const handleShowTooltipChange = useCallback((value: boolean) => {
+    updateStyle('showTooltip', value)
+  }, [updateStyle])
+
+  const handleEnableSelectionChange = useCallback((value: boolean) => {
+    updateStyle('enableSelection', value)
+  }, [updateStyle])
+
+  const handleSelectionTypeChange = useCallback((value: any) => {
+    updateStyle('selectionType', value)
+  }, [updateStyle])
 
   if (!styleConfig) {
     return <div className="p-4">Carregando...</div>
@@ -23,13 +73,13 @@ export default function StylePanel() {
             id="background"
             type="color"
             value={styleConfig.background}
-            onChange={(e) => updateStyle('background', e.target.value)}
+            onChange={(e) => handleBackgroundChange(e.target.value)}
             className="w-20 h-10"
           />
           <Input
             type="text"
             value={styleConfig.background}
-            onChange={(e) => updateStyle('background', e.target.value)}
+            onChange={(e) => handleBackgroundChange(e.target.value)}
             placeholder="#ffffff"
             className="flex-1"
           />
@@ -44,13 +94,13 @@ export default function StylePanel() {
             id="primaryColor"
             type="color"
             value={styleConfig.primaryColor}
-            onChange={(e) => updateStyle('primaryColor', e.target.value)}
+            onChange={(e) => handlePrimaryColorChange(e.target.value)}
             className="w-20 h-10"
           />
           <Input
             type="text"
             value={styleConfig.primaryColor}
-            onChange={(e) => updateStyle('primaryColor', e.target.value)}
+            onChange={(e) => handlePrimaryColorChange(e.target.value)}
             placeholder="#3498db"
             className="flex-1"
           />
@@ -63,7 +113,7 @@ export default function StylePanel() {
         <select
           id="colorScheme"
           value={styleConfig.colorScheme}
-          onChange={(e) => updateStyle('colorScheme', e.target.value)}
+          onChange={(e) => handleColorSchemeChange(e.target.value)}
           className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
         >
           <option value="category10">Category 10</option>
@@ -89,7 +139,7 @@ export default function StylePanel() {
               id="xAxisTitle"
               type="text"
               value={styleConfig.xAxisTitle}
-              onChange={(e) => updateStyle('xAxisTitle', e.target.value)}
+              onChange={(e) => handleXAxisTitleChange(e.target.value)}
             />
           </div>
 
@@ -99,7 +149,7 @@ export default function StylePanel() {
               id="yAxisTitle"
               type="text"
               value={styleConfig.yAxisTitle}
-              onChange={(e) => updateStyle('yAxisTitle', e.target.value)}
+              onChange={(e) => handleYAxisTitleChange(e.target.value)}
             />
           </div>
 
@@ -108,7 +158,7 @@ export default function StylePanel() {
               type="checkbox"
               id="showGrid"
               checked={styleConfig.showGrid}
-              onChange={(e) => updateStyle('showGrid', e.target.checked)}
+              onChange={(e) => handleShowGridChange(e.target.checked)}
               className="rounded border-gray-300"
             />
             <Label htmlFor="showGrid" className="cursor-pointer">
@@ -130,7 +180,7 @@ export default function StylePanel() {
               type="checkbox"
               id="showBorders"
               checked={styleConfig.showBorders}
-              onChange={(e) => updateStyle('showBorders', e.target.checked)}
+              onChange={(e) => handleShowBordersChange(e.target.checked)}
               className="rounded border-gray-300"
             />
             <Label htmlFor="showBorders" className="cursor-pointer">
@@ -147,13 +197,13 @@ export default function StylePanel() {
                     id="borderColor"
                     type="color"
                     value={styleConfig.borderColor}
-                    onChange={(e) => updateStyle('borderColor', e.target.value)}
+                    onChange={(e) => handleBorderColorChange(e.target.value)}
                     className="w-20 h-10"
                   />
                   <Input
                     type="text"
                     value={styleConfig.borderColor}
-                    onChange={(e) => updateStyle('borderColor', e.target.value)}
+                    onChange={(e) => handleBorderColorChange(e.target.value)}
                     className="flex-1"
                   />
                 </div>
@@ -167,7 +217,7 @@ export default function StylePanel() {
                   min="1"
                   max="10"
                   value={styleConfig.borderWidth}
-                  onChange={(e) => updateStyle('borderWidth', parseInt(e.target.value))}
+                  onChange={(e) => handleBorderWidthChange(parseInt(e.target.value))}
                 />
               </div>
             </>
@@ -183,7 +233,7 @@ export default function StylePanel() {
           type="checkbox"
           id="showTooltip"
           checked={styleConfig.showTooltip}
-          onChange={(e) => updateStyle('showTooltip', e.target.checked)}
+          onChange={(e) => handleShowTooltipChange(e.target.checked)}
           className="rounded border-gray-300"
         />
         <Label htmlFor="showTooltip" className="cursor-pointer">
@@ -203,7 +253,7 @@ export default function StylePanel() {
               type="checkbox"
               id="enableSelection"
               checked={styleConfig.enableSelection}
-              onChange={(e) => updateStyle('enableSelection', e.target.checked)}
+              onChange={(e) => handleEnableSelectionChange(e.target.checked)}
               className="rounded border-gray-300"
             />
             <Label htmlFor="enableSelection" className="cursor-pointer">
@@ -217,7 +267,7 @@ export default function StylePanel() {
               <select
                 id="selectionType"
                 value={styleConfig.selectionType}
-                onChange={(e) => updateStyle('selectionType', e.target.value as any)}
+                onChange={(e) => handleSelectionTypeChange(e.target.value as any)}
                 className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
               >
                 <option value="point">Ponto (clique)</option>
@@ -230,3 +280,6 @@ export default function StylePanel() {
     </div>
   )
 }
+
+// Memoize component to prevent unnecessary re-renders
+export default memo(StylePanel)

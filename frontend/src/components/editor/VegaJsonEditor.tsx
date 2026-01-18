@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useState } from 'react'
+import { useEffect, useRef, useCallback, useState, memo } from 'react'
 import { EditorState, Extension } from '@codemirror/state'
 import { EditorView, keymap, lineNumbers, highlightActiveLineGutter, highlightSpecialChars, drawSelection, dropCursor, rectangularSelection, crosshairCursor, highlightActiveLine } from '@codemirror/view'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
@@ -20,12 +20,12 @@ interface VegaJsonEditorProps {
   className?: string
 }
 
-export default function VegaJsonEditor({
+function VegaJsonEditor({
   spec,
   onChange,
   readOnly = false,
   theme = 'dark',
-  debounceMs = 500,
+  debounceMs = 100, // Reduced from 500ms to 100ms for better real-time performance
   className = '',
 }: VegaJsonEditorProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -294,3 +294,15 @@ export default function VegaJsonEditor({
     </div>
   )
 }
+
+// Memoize component to prevent unnecessary re-renders
+// Custom comparison to only re-render when critical props change
+export default memo(VegaJsonEditor, (prevProps, nextProps) => {
+  // Don't re-render if spec, theme, and readOnly are the same
+  return (
+    JSON.stringify(prevProps.spec) === JSON.stringify(nextProps.spec) &&
+    prevProps.theme === nextProps.theme &&
+    prevProps.readOnly === nextProps.readOnly &&
+    prevProps.debounceMs === nextProps.debounceMs
+  )
+})
