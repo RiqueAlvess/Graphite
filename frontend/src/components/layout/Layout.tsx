@@ -20,7 +20,7 @@ export default function Layout() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-8">
               <Link to="/gallery" className="text-xl font-bold text-primary">
-                Vega Visual Builder
+                Graphite
               </Link>
 
               <nav className="hidden md:flex space-x-4">

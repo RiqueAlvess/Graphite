@@ -1,4 +1,4 @@
-# 🎨 Vega Visual Builder
+# 🎨 Graphite
 
 Plataforma web para criação visual de gráficos Vega/Vega-Lite compatíveis com Deneb (Power BI). Crie visualizações poderosas sem editar JSON diretamente, usando uma interface intuitiva semelhante ao Figma.
 
@@ -66,7 +66,7 @@ Plataforma web para criação visual de gráficos Vega/Vega-Lite compatíveis co
 1. Clone o repositório:
 ```bash
 git clone <repo-url>
-cd vega-visual-builder
+cd graphite
 ```
 
 2. Instale as dependências:

@@ -3,9 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useEditorStore } from '@/store/editorStore'
 import { useVegaPreview } from '@/hooks/useVegaPreview'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Save, Copy, ArrowLeft } from 'lucide-react'
+import { Save, Copy, ArrowLeft, Download, RefreshCw } from 'lucide-react'
 import StylePanel from '@/components/editor/StylePanel'
 
 export default function EditorPage() {
@@ -23,9 +21,22 @@ export default function EditorPage() {
     exportToJSON,
   } = useEditorStore()
 
-  const { error: renderError, isRendering } = useVegaPreview(containerRef, vegaSpec)
+  const {
+    error: renderError,
+    warnings,
+    isRendering,
+    isValidSpec,
+    refresh,
+    exportImage,
+  } = useVegaPreview(containerRef, vegaSpec, undefined, {
+    debounceMs: 300,
+    renderer: 'svg',
+    actions: false,
+    onError: (err) => console.error('Render error:', err),
+  })
 
   const [copied, setCopied] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
 
   useEffect(() => {
     if (visualId) {
@@ -47,6 +58,30 @@ export default function EditorPage() {
     await navigator.clipboard.writeText(json)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  async function handleExportImage() {
+    setIsExporting(true)
+    try {
+      const svgData = await exportImage('svg')
+      if (svgData) {
+        // Criar blob e download
+        const blob = new Blob([svgData], { type: 'image/svg+xml' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `${currentVisual?.name || 'chart'}.svg`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      }
+    } catch (error) {
+      console.error('Failed to export image:', error)
+      alert('Erro ao exportar imagem.')
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   if (isLoading) {
@@ -86,6 +121,26 @@ export default function EditorPage() {
           </div>
 
           <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={refresh}
+              disabled={isRendering}
+              title="Atualizar preview"
+            >
+              <RefreshCw size={16} className={isRendering ? 'animate-spin' : ''} />
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportImage}
+              disabled={isExporting || !isValidSpec}
+            >
+              <Download size={16} className="mr-2" />
+              {isExporting ? 'Exportando...' : 'SVG'}
+            </Button>
+
             <Button variant="outline" size="sm" onClick={handleExport}>
               <Copy size={16} className="mr-2" />
               {copied ? 'Copiado!' : 'Copiar JSON'}
@@ -110,7 +165,12 @@ export default function EditorPage() {
         <div className="flex-1 bg-gray-50 p-8 overflow-auto">
           <div className="max-w-4xl mx-auto">
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-4">Preview</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Preview</h3>
+                {isRendering && (
+                  <span className="text-sm text-gray-500">Renderizando...</span>
+                )}
+              </div>
 
               {renderError && (
                 <div className="bg-red-50 text-red-600 p-4 rounded-md mb-4">
@@ -119,12 +179,34 @@ export default function EditorPage() {
                 </div>
               )}
 
-              {isRendering && (
-                <div className="text-center py-8 text-gray-500">Renderizando...</div>
+              {warnings.length > 0 && (
+                <div className="bg-yellow-50 text-yellow-700 p-4 rounded-md mb-4">
+                  <p className="font-medium">Avisos:</p>
+                  <ul className="text-sm mt-1 list-disc list-inside">
+                    {warnings.map((warning, i) => (
+                      <li key={i}>{warning}</li>
+                    ))}
+                  </ul>
+                </div>
               )}
 
-              <div ref={containerRef} className="w-full min-h-[400px]" />
+              <div
+                ref={containerRef}
+                className="w-full min-h-[400px] flex items-center justify-center"
+              />
             </div>
+
+            {/* Debug info */}
+            {process.env.NODE_ENV === 'development' && vegaSpec && (
+              <details className="mt-4 bg-gray-100 rounded-lg p-4">
+                <summary className="cursor-pointer font-medium text-gray-700">
+                  Debug: Vega-Lite Spec
+                </summary>
+                <pre className="mt-2 text-xs overflow-auto max-h-96 bg-gray-800 text-green-400 p-4 rounded">
+                  {JSON.stringify(vegaSpec, null, 2)}
+                </pre>
+              </details>
+            )}
           </div>
         </div>
       </div>

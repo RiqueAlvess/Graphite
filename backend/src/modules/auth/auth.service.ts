@@ -108,10 +108,9 @@ export class AuthService {
 
   async refreshAccessToken(refreshToken: string): Promise<{ accessToken: string }> {
     // Verify refresh token
-    let payload
     try {
-      payload = verifyRefreshToken(refreshToken)
-    } catch (error) {
+      verifyRefreshToken(refreshToken)
+    } catch {
       throw new Error('INVALID_REFRESH_TOKEN')
     }
 

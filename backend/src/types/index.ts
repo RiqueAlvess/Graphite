@@ -1,5 +1,3 @@
-import { User } from '@prisma/client'
-
 // Extend Fastify Request to include user
 declare module 'fastify' {
   interface FastifyRequest {
@@ -17,8 +15,18 @@ export interface JWTPayload {
   plan: 'FREE' | 'PREMIUM'
 }
 
+// User type matching Prisma schema
+export interface User {
+  id: string
+  email: string
+  name: string | null
+  plan: 'FREE' | 'PREMIUM'
+  createdAt: Date
+  updatedAt: Date
+}
+
 export interface AuthResponse {
-  user: Omit<User, 'password'>
+  user: User
   accessToken: string
   refreshToken: string
 }

@@ -21,7 +21,7 @@ interface EditorState {
   reset: () => void
 }
 
-const defaultStyleConfig: StyleConfig = {
+export const defaultStyleConfig: StyleConfig = {
   background: '#ffffff',
   primaryColor: '#3498db',
   colorScheme: 'category10',
@@ -144,6 +144,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           metaVersion: 1,
           provider: 'vegaLite',
           providerVersion: '5.16.3',
+        },
+        graphite: {
+          version: '1.0.0',
+          exportedAt: new Date().toISOString(),
         },
       },
     }

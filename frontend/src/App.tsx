@@ -1,5 +1,4 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { useAuthStore } from './store/authStore'
 
 // Pages
 import LoginPage from './app/auth/LoginPage'
