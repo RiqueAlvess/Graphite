@@ -62,6 +62,9 @@ export interface Visual {
     name: string
     category: string
     thumbnail: string
+    sampleData?: any[]
+    spec?: VegaLiteSpec
+    defaultStyleConfig?: StyleConfig
   }
   styleConfig: StyleConfig
   spec: VegaLiteSpec

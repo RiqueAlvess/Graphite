@@ -71,7 +71,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   },
 
   updateStyle: (path: string, value: any) => {
-    const { styleConfig, currentVisual } = get()
+    const { styleConfig, currentVisual, vegaSpec } = get()
     if (!styleConfig || !currentVisual) return
 
     // Update styleConfig usando dot notation
@@ -84,11 +84,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     }
     current[keys[keys.length - 1]] = value
 
-    // Regenerar spec Vega
+    // Regenerar spec Vega - usa o spec atual como base
     const newSpec = styleConfigToVegaSpec(
       currentVisual.template!,
       newConfig,
-      currentVisual.userData || []
+      currentVisual.userData || [],
+      vegaSpec || undefined
     )
 
     set({

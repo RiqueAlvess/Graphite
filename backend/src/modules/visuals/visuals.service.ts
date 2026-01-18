@@ -69,6 +69,8 @@ export class VisualsService {
             category: true,
             thumbnail: true,
             sampleData: true,
+            spec: true,
+            defaultStyleConfig: true,
           },
         },
       },
