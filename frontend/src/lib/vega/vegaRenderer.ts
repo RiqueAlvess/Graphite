@@ -3,6 +3,41 @@ import * as vega from 'vega'
 import * as vegaLite from 'vega-lite'
 import type { VegaLiteSpec } from '@/types'
 
+/**
+ * Fast structural comparison for Vega specs
+ * Only compares critical fields that affect rendering
+ */
+function specsAreEqual(spec1: VegaLiteSpec | null, spec2: VegaLiteSpec | null): boolean {
+  if (!spec1 || !spec2) return spec1 === spec2
+
+  // Quick reference equality check
+  if (spec1 === spec2) return true
+
+  // Compare critical fields that affect rendering
+  const criticalFields: (keyof VegaLiteSpec)[] = [
+    'mark', 'encoding', 'layer', 'hconcat', 'vconcat', 'concat',
+    'width', 'height', 'params', 'transform'
+  ]
+
+  for (const field of criticalFields) {
+    if (JSON.stringify(spec1[field]) !== JSON.stringify(spec2[field])) {
+      return false
+    }
+  }
+
+  // Compare config (only if both exist or both don't)
+  if ((spec1.config && !spec2.config) || (!spec1.config && spec2.config)) {
+    return false
+  }
+  if (spec1.config && spec2.config) {
+    if (JSON.stringify(spec1.config) !== JSON.stringify(spec2.config)) {
+      return false
+    }
+  }
+
+  return true
+}
+
 export interface VegaRendererOptions {
   container: HTMLElement | string
   spec: VegaLiteSpec
@@ -228,9 +263,9 @@ export class VegaRenderer {
       throw new Error('Renderer not initialized. Call render() first.')
     }
 
-    // Verificar se a spec mudou significativamente
+    // Verificar se a spec mudou significativamente usando comparação estrutural rápida
     const normalizedSpec = this.normalizeSpec(spec)
-    const specChanged = JSON.stringify(normalizedSpec) !== JSON.stringify(this.currentSpec)
+    const specChanged = !specsAreEqual(normalizedSpec, this.currentSpec)
 
     if (!specChanged && !data) {
       // Nada mudou, não precisa re-renderizar

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, RefObject } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo, RefObject } from 'react'
 import { VegaRenderer } from '@/lib/vega/vegaRenderer'
 import { validateVegaSpec } from '@/lib/vega/vegaTransformer'
 import type { VegaLiteSpec } from '@/types'
@@ -31,7 +31,7 @@ export function useVegaPreview(
   exportImage: (format?: 'svg' | 'png') => Promise<string | null>
 } {
   const {
-    debounceMs = 300,
+    debounceMs = 100, // Reduced from 300ms to 100ms for better real-time performance
     renderer = 'svg',
     actions = false,
     onRenderComplete,
@@ -53,6 +53,12 @@ export function useVegaPreview(
   // Debounce spec para evitar re-renders excessivos
   const debouncedSpec = useDebounce(spec, debounceMs)
 
+  // Memoize validation result to avoid recalculating on every render
+  const validation = useMemo(() => {
+    if (!debouncedSpec) return null
+    return validateVegaSpec(debouncedSpec)
+  }, [debouncedSpec])
+
   // Criar renderer apenas uma vez
   useEffect(() => {
     rendererRef.current = new VegaRenderer()
@@ -68,21 +74,19 @@ export function useVegaPreview(
   }, [])
 
   // Função de renderização
-  const renderChart = useCallback(async (specToRender: VegaLiteSpec) => {
+  const renderChart = useCallback(async (specToRender: VegaLiteSpec, validationResult: ReturnType<typeof validateVegaSpec>) => {
     if (!containerRef.current || !rendererRef.current || !isMountedRef.current) {
       return
     }
 
     const currentRender = ++renderCountRef.current
 
-    // Validar spec antes de renderizar
-    const validation = validateVegaSpec(specToRender)
-
-    if (!validation.valid) {
+    // Use pre-computed validation result
+    if (!validationResult.valid) {
       setState(prev => ({
         ...prev,
-        error: new Error(validation.errors.join(', ')),
-        warnings: validation.warnings,
+        error: new Error(validationResult.errors.join(', ')),
+        warnings: validationResult.warnings,
         isRendering: false,
         isValidSpec: false,
         view: null,
@@ -94,7 +98,7 @@ export function useVegaPreview(
       ...prev,
       isRendering: true,
       error: null,
-      warnings: validation.warnings,
+      warnings: validationResult.warnings,
       isValidSpec: true,
     }))
 
@@ -157,7 +161,7 @@ export function useVegaPreview(
 
   // Renderizar quando spec mudar
   useEffect(() => {
-    if (!debouncedSpec) {
+    if (!debouncedSpec || !validation) {
       setState(prev => ({
         ...prev,
         error: null,
@@ -169,15 +173,15 @@ export function useVegaPreview(
       return
     }
 
-    renderChart(debouncedSpec)
-  }, [debouncedSpec, renderChart])
+    renderChart(debouncedSpec, validation)
+  }, [debouncedSpec, validation, renderChart])
 
   // Função para forçar refresh
   const refresh = useCallback(() => {
-    if (debouncedSpec) {
-      renderChart(debouncedSpec)
+    if (debouncedSpec && validation) {
+      renderChart(debouncedSpec, validation)
     }
-  }, [debouncedSpec, renderChart])
+  }, [debouncedSpec, validation, renderChart])
 
   // Função para exportar imagem
   const exportImage = useCallback(async (format: 'svg' | 'png' = 'svg'): Promise<string | null> => {
