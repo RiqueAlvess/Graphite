@@ -1,0 +1,95 @@
+// Prisma Schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Plan {
+  FREE
+  PREMIUM
+}
+
+enum VisualStatus {
+  DRAFT
+  COMPLETED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+
+  plan      Plan     @default(FREE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  visuals   Visual[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model Template {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  category    String
+  thumbnail   String
+
+  spec                Json
+  defaultStyleConfig  Json
+  requiredFields      Json
+  sampleData          Json
+
+  tags        String[]
+  isPremium   Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  visuals     Visual[]
+
+  @@map("templates")
+}
+
+model Visual {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  templateId  String
+  template    Template      @relation(fields: [templateId], references: [id])
+
+  styleConfig Json
+  spec        Json
+  userData    Json?
+
+  status      VisualStatus  @default(DRAFT)
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("visuals")
+  @@index([userId, createdAt])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+  @@index([userId])
+}
