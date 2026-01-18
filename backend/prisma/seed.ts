@@ -226,12 +226,12 @@ async function main() {
         y: { name: 'value', type: 'quantitative' },
       },
       sampleData: [
-        { date: '2024-01', value: 100, category: 'A' },
-        { date: '2024-01', value: 80, category: 'B' },
-        { date: '2024-02', value: 120, category: 'A' },
-        { date: '2024-02', value: 90, category: 'B' },
-        { date: '2024-03', value: 110, category: 'A' },
-        { date: '2024-03', value: 100, category: 'B' },
+        { date: '2024-01-01', value: 100, category: 'A' },
+        { date: '2024-01-01', value: 80, category: 'B' },
+        { date: '2024-02-01', value: 120, category: 'A' },
+        { date: '2024-02-01', value: 90, category: 'B' },
+        { date: '2024-03-01', value: 110, category: 'A' },
+        { date: '2024-03-01', value: 100, category: 'B' },
       ],
     },
   ]

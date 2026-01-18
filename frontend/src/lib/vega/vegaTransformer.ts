@@ -6,10 +6,17 @@ import type { Template, StyleConfig, VegaLiteSpec } from '@/types'
 export function styleConfigToVegaSpec(
   template: Template | any,
   styleConfig: StyleConfig,
-  userData: any[]
+  userData: any[],
+  currentSpec?: VegaLiteSpec
 ): VegaLiteSpec {
-  // Clone do spec base do template
-  const spec: VegaLiteSpec = JSON.parse(JSON.stringify(template.spec || {}))
+  // Clone do spec base - prioriza o spec atual do visual, depois o do template
+  const baseSpec = currentSpec || template.spec || {}
+  const spec: VegaLiteSpec = JSON.parse(JSON.stringify(baseSpec))
+
+  // Garantir que tem $schema
+  if (!spec.$schema) {
+    spec.$schema = 'https://vega.github.io/schema/vega-lite/v5.json'
+  }
 
   // Usar dados do usuário ou sample data
   spec.data = {
@@ -21,7 +28,12 @@ export function styleConfigToVegaSpec(
   spec.config.background = styleConfig.background
 
   // Mark (borders)
-  if (spec.mark && typeof spec.mark === 'object') {
+  if (spec.mark) {
+    // Garantir que mark seja objeto
+    if (typeof spec.mark === 'string') {
+      spec.mark = { type: spec.mark }
+    }
+
     if (styleConfig.showBorders) {
       spec.mark.stroke = styleConfig.borderColor
       spec.mark.strokeWidth = styleConfig.borderWidth
@@ -33,10 +45,12 @@ export function styleConfigToVegaSpec(
     spec.mark.tooltip = styleConfig.showTooltip
   }
 
-  // Encoding
-  spec.encoding = spec.encoding || {}
+  // Encoding - NÃO sobrescrever se já existir!
+  if (!spec.encoding) {
+    spec.encoding = {}
+  }
 
-  // Eixos
+  // Eixos - só modificar se existirem
   if (spec.encoding.x) {
     spec.encoding.x.axis = {
       ...spec.encoding.x.axis,
@@ -112,6 +126,15 @@ export function styleConfigToVegaSpec(
           value: 'lightgray',
         }
       }
+    }
+  }
+
+  // Validação final - garantir que tem mark
+  if (!spec.mark && !spec.layer && !spec.hconcat && !spec.vconcat && !spec.concat) {
+    console.error('Invalid spec: missing mark or composition', spec)
+    // Fallback - tentar usar do template original
+    if (template.spec?.mark) {
+      spec.mark = template.spec.mark
     }
   }
 
